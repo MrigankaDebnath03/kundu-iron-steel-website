@@ -10,18 +10,22 @@ const modalQuoteForm = document.getElementById('modalQuoteForm');
 // Navigation Toggle
 navToggle.addEventListener('click', () => {
     navMenu.classList.toggle('active');
+    navToggle.classList.toggle('active');
     
-    // Animate hamburger menu
-    const bars = navToggle.querySelectorAll('.bar');
-    bars.forEach(bar => bar.classList.toggle('active'));
+    // Prevent body scroll when menu is open
+    if (navMenu.classList.contains('active')) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = 'auto';
+    }
 });
 
 // Close mobile menu when clicking on a link
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', () => {
         navMenu.classList.remove('active');
-        const bars = navToggle.querySelectorAll('.bar');
-        bars.forEach(bar => bar.classList.remove('active'));
+        navToggle.classList.remove('active');
+        document.body.style.overflow = 'auto';
     });
 });
 
@@ -439,45 +443,158 @@ function lazyLoadImages() {
 // Initialize lazy loading
 document.addEventListener('DOMContentLoaded', lazyLoadImages);
 
-// Handle image loading
+// Handle image loading - SIMPLIFIED for better mobile display
 function handleImageLoading() {
     const images = document.querySelectorAll('.hero-img, .about-img, .gallery-img');
     
     images.forEach(img => {
-        if (img.complete) {
-            img.classList.add('loaded');
-        } else {
-            img.addEventListener('load', () => {
-                img.classList.add('loaded');
-            });
-            
-            img.addEventListener('error', () => {
-                img.style.display = 'none';
-                const fallback = document.createElement('div');
-                fallback.className = 'image-fallback';
-                fallback.innerHTML = `
-                    <i class="fas fa-image"></i>
-                    <p>Image not available</p>
-                `;
-                fallback.style.cssText = `
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    background-color: var(--light-gray);
-                    color: var(--charcoal-gray);
-                    padding: 2rem;
-                    border-radius: 12px;
-                    text-align: center;
-                `;
-                img.parentNode.insertBefore(fallback, img);
-            });
-        }
+        // Set images to visible immediately
+        img.style.opacity = '1';
+        img.classList.add('loaded');
+        
+        // Add error handling
+        img.addEventListener('error', () => {
+            img.style.display = 'none';
+            const fallback = document.createElement('div');
+            fallback.className = 'image-fallback';
+            fallback.innerHTML = `
+                <i class="fas fa-image"></i>
+                <p>Image not available</p>
+            `;
+            fallback.style.cssText = `
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 200px;
+                background-color: var(--light-gray);
+                color: var(--charcoal-gray);
+                border-radius: 8px;
+            `;
+            img.parentNode.insertBefore(fallback, img);
+        });
     });
 }
 
 // Initialize image loading
 document.addEventListener('DOMContentLoaded', handleImageLoading);
+
+// Mobile-specific gallery enhancements
+function enhanceMobileGallery() {
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    
+    galleryItems.forEach(item => {
+        // Add touch feedback for mobile
+        item.addEventListener('touchstart', () => {
+            item.style.transform = 'scale(0.98)';
+        });
+        
+        item.addEventListener('touchend', () => {
+            item.style.transform = '';
+        });
+        
+        // Prevent default touch behavior that might interfere
+        item.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+    });
+}
+
+// Enhanced mobile navigation
+function enhanceMobileNavigation() {
+    const navToggle = document.getElementById('nav-toggle');
+    const navMenu = document.getElementById('nav-menu');
+    
+    // Add haptic feedback for mobile (if supported)
+    if ('vibrate' in navigator) {
+        navToggle.addEventListener('click', () => {
+            navigator.vibrate(50);
+        });
+    }
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
+            navMenu.classList.remove('active');
+            navToggle.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+    });
+    
+    // Prevent body scroll when menu is open
+    navMenu.addEventListener('touchmove', (e) => {
+        if (navMenu.classList.contains('active')) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+}
+
+// Optimize images for mobile display
+function optimizeImagesForMobile() {
+    const images = document.querySelectorAll('.gallery-img, .hero-img, .about-img');
+    
+    images.forEach(img => {
+        // Ensure images are visible on mobile
+        img.style.opacity = '1';
+        img.style.display = 'block';
+        
+        // Add loading="lazy" for better performance
+        if (!img.hasAttribute('loading')) {
+            img.setAttribute('loading', 'lazy');
+        }
+        
+        // Ensure proper sizing
+        img.style.width = '100%';
+        img.style.height = 'auto';
+        img.style.objectFit = 'cover';
+        
+        // Add error handling
+        img.addEventListener('error', function() {
+            this.style.display = 'none';
+            const fallback = document.createElement('div');
+            fallback.className = 'image-fallback';
+            fallback.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; background-color: #f8f9fa; color: #374151; border-radius: 8px;">
+                    <i class="fas fa-image" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                    <p style="margin: 0; font-size: 0.9rem;">Image not available</p>
+                </div>
+            `;
+            this.parentNode.insertBefore(fallback, this);
+        });
+    });
+}
+
+// Mobile-specific form enhancements
+function enhanceMobileForms() {
+    const inputs = document.querySelectorAll('input, textarea, select');
+    
+    inputs.forEach(input => {
+        // Prevent zoom on iOS for inputs
+        if (input.type !== 'file') {
+            input.style.fontSize = '16px';
+        }
+        
+        // Add better focus states for mobile
+        input.addEventListener('focus', () => {
+            input.style.borderColor = 'var(--accent-red)';
+            input.style.boxShadow = '0 0 0 3px rgba(220, 38, 38, 0.1)';
+        });
+        
+        input.addEventListener('blur', () => {
+            input.style.borderColor = 'var(--aluminum-silver)';
+            input.style.boxShadow = 'none';
+        });
+    });
+}
+
+// Initialize mobile enhancements
+document.addEventListener('DOMContentLoaded', () => {
+    enhanceMobileGallery();
+    enhanceMobileNavigation();
+    optimizeImagesForMobile();
+    enhanceMobileForms();
+    handleImageLoading();
+});
 
 // Form validation enhancement
 function enhanceFormValidation() {
